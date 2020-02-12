@@ -1,6 +1,6 @@
 import numpy as np
-from .events import ShipEvent as Event
-from .config import Config
+from enum import Enum
+from .config import config as c
 
 
 class Ship:
@@ -25,18 +25,18 @@ class Ship:
         if hit:
             self.hp[loc] = 0
             if self.is_sunk():
-                return Event.SINK
+                return ShipEvent.SINK
             else:
-                return Event.HIT
+                return ShipEvent.HIT
         else:
-            return Event.MISS
+            return ShipEvent.MISS
 
     def place_on(self, board, placement_strategy=None):
         raise NotImplementedError  # todo
 
     @property
     def size(self):
-        return Config.ShipSizes[self.__class__]
+        return c['ship']['ship_sizes'][self.__class__]
 
     @property
     def name(self):
@@ -71,4 +71,37 @@ class PatrolBoat(Ship):
         super().__init__(id=id)
 
 
+_ships = dict(
+    Carrier=Carrier,
+    Battleship=Battleship,
+    Destroyer=Destroyer,
+    Submarine=Submarine,
+    PatrolBoat=PatrolBoat
+)
+
+
 __all__ = [Ship, Carrier, Battleship, Destroyer, Submarine, PatrolBoat]
+
+
+class ShipEvent(Enum):
+    MISS = -1
+    HIT = 0
+    SINK = 1
+
+
+defaults = {
+    "ship_counts": {
+        'Carrier': 1,
+        'Battleship': 1,
+        'Destroyer': 1,
+        'Submarine': 1,
+        'PatrolBoat': 1
+    },
+    "ship_sizes": {
+        'Carrier': 5,
+        'Battleship': 4,
+        'Destroyer': 3,
+        'Submarine': 3,
+        'PatrolBoat': 2
+    }
+}
