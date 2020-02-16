@@ -1,0 +1,16 @@
+Ship:
+    Carrier:
+        size: 5
+        count: 1
+    Battleship:
+        size: 4
+        count: 1
+    Destroyer:
+        size: 3
+        count: 1
+    Submarine:
+        size: 3
+        count: 1
+    Patrolboat:
+        size: 2
+        count: 1

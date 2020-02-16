@@ -2,7 +2,6 @@ import random
 import numpy as np
 from matplotlib import pyplot as plt
 from .utils import get_ax_labels, get_short_uuid
-from .config import config
 
 
 class Board:

@@ -1,10 +1,11 @@
 import numpy as np
 from enum import Enum
-from .config import config as c
+from .config import Configurable
 
 
-class Ship:
+class Ship(Configurable):
     def __init__(self, id=0):
+        super().__init__()
         self.id = id
         self.squares = np.zeros((self.size, 2))
         self.hp = np.ones(self.size)
@@ -33,10 +34,6 @@ class Ship:
 
     def place_on(self, board, placement_strategy=None):
         raise NotImplementedError  # todo
-
-    @property
-    def size(self):
-        return c['ship']['ship_sizes'][self.__class__]
 
     @property
     def name(self):
@@ -71,37 +68,7 @@ class PatrolBoat(Ship):
         super().__init__(id=id)
 
 
-_ships = dict(
-    Carrier=Carrier,
-    Battleship=Battleship,
-    Destroyer=Destroyer,
-    Submarine=Submarine,
-    PatrolBoat=PatrolBoat
-)
-
-
-__all__ = [Ship, Carrier, Battleship, Destroyer, Submarine, PatrolBoat]
-
-
 class ShipEvent(Enum):
     MISS = -1
     HIT = 0
     SINK = 1
-
-
-defaults = {
-    "ship_counts": {
-        'Carrier': 1,
-        'Battleship': 1,
-        'Destroyer': 1,
-        'Submarine': 1,
-        'PatrolBoat': 1
-    },
-    "ship_sizes": {
-        'Carrier': 5,
-        'Battleship': 4,
-        'Destroyer': 3,
-        'Submarine': 3,
-        'PatrolBoat': 2
-    }
-}
