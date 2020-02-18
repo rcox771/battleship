@@ -11,6 +11,6 @@ Ship:
     Submarine:
         size: 3
         count: 1
-    Patrolboat:
+    PatrolBoat:
         size: 2
         count: 1
