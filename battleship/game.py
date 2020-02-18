@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 from .utils import get_ax_labels, get_short_uuid
 import inspect
 from . import ships
+from .rules import Rule
 
 
 def get_ships():
@@ -18,21 +19,28 @@ def get_ships():
 class Board:
     def __init__(self, board_size=10,
                  placement_strategy=None):
-
+        self.size = board_size
         self.board = np.zeros((board_size, board_size), dtype=np.uint8)
+        self.placement_mask = np.zeros_like(self.board)
         self.rows, self.cols = get_ax_labels(board_size)
         self.ships = []
-        self.place_ships(placement_strategy)
+        self.rules = [Rule.NO_OVERLAP, Rule.NO_TOUCH, Rule.NO_OOB]
+        # self.place_ships(placement_strategy)
 
     def place_ships(self, placement_strategy):
+        if not placement_strategy:
+            placement_strategy = 'random'
         _ships = get_ships()
         for ship in _ships:
             to_place = _ships[ship]().count
             for _ in range(to_place):
                 ship = _ships[ship](id=len(self.ships))
-                ship.place_on(self.board,
-                              placement_strategy=self.placement_strategy)
+                ship.place_on(self.board, placement_strategy)
                 assert ship.is_placed()
+
+                ship.bbox
+
+                self.ships.append(ship)
 
     def plot(self, ax=None, figsize=(5, 5)):
         if not ax:

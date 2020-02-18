@@ -1,6 +1,7 @@
 import numpy as np
 from enum import Enum
 from .config import Configurable
+from .rules import Rule
 
 
 class Ship(Configurable):
@@ -21,6 +22,14 @@ class Ship(Configurable):
                           & (self.squares[:, 1] == x)).flatten()
         return bool(loc), loc
 
+    @property
+    def ys(self):
+        return self.squares[:, 0].copy()
+
+    @property
+    def xs(self):
+        return self.squares[:, 1].copy()
+
     def take_damage(self, y, x):
         hit, loc = self.hit_by(y, x)
         if hit:
@@ -32,7 +41,37 @@ class Ship(Configurable):
         else:
             return ShipEvent.MISS
 
+    def bounds(self, boardsize, no_touch=False):
+        ymin = self.ys.min() - 1 if no_touch else 0
+        ymax = self.ys.max() + 1 if no_touch else 0
+        xmin = self.xs.min() - 1 if no_touch else 0
+        xmax = self.xs.max() + 1 if no_touch else 0
+        return np.clip(np.array([ymin, ymax, xmin, xmax], 0, boardsize))
+
     def place_on(self, board, placement_strategy=None):
+        success = False
+
+        # check coords must be within board boundary
+        x_within_bounds = ((0 <= self.xs) & (self.xs < board.size)).all()
+        y_within_bounds = ((0 <= self.ys) & (self.ys < board.size)).all()
+        if not (x_within_bounds and y_within_bounds):
+            return success, Rule.NO_OOB
+
+        # check touching if necessary
+        if Rule.NO_TOUCH in board.rules:
+            # coords must not touch or overlap another ship's boundaries
+            if not board.placement_mask[self.ys, self.xs].any():
+                return success, Rule.NO_TOUCH
+
+        # check overlap if necessary
+        undo = board.placement_mask.copy()
+        ymin, ymax, xmin, xmax = self.bounds(board.size)
+        board.placement_mask[ymin:ymax, xmin:xmax] += 1
+        if Rule.NO_OVERLAP in board.rules:
+            if (board.placement_mask > 1).any():
+                board.placement_mask = undo
+                return success, Rule.NO_OVERLAP
+
         raise NotImplementedError  # todo
 
     @property
