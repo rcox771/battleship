@@ -11,8 +11,8 @@ from .rules import Rule
 
 def get_ships():
     d = dict(inspect.getmembers(ships))
-    d = {k: d[k] for k in d if 'ships.' in repr(
-        d[k]).lower() and not k.startswith('__')}
+    d = {k: d[k] for k in d if 'ships.' in repr(d[k]).lower() and not k.startswith('__') and not '.Ship' in k
+         }
     return d
 
 
@@ -25,9 +25,9 @@ class Board:
         self.rows, self.cols = get_ax_labels(board_size)
         self.ships = []
         self.rules = [Rule.NO_OVERLAP, Rule.NO_TOUCH, Rule.NO_OOB]
-        # self.place_ships(placement_strategy)
+        self.place_ships(placement_strategy)
 
-    def place_ships(self, placement_strategy):
+    def place_ships(self, placement_strategy=None):
         if not placement_strategy:
             placement_strategy = 'random'
         _ships = get_ships()
@@ -35,11 +35,9 @@ class Board:
             to_place = _ships[ship]().count
             for _ in range(to_place):
                 ship = _ships[ship](id=len(self.ships))
-                ship.place_on(self.board, placement_strategy)
+                success, msg = ship.place_on(self, placement_strategy)
+
                 assert ship.is_placed()
-
-                ship.bbox
-
                 self.ships.append(ship)
 
     def plot(self, ax=None, figsize=(5, 5)):

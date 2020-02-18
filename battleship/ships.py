@@ -2,6 +2,7 @@ import numpy as np
 from enum import Enum
 from .config import Configurable
 from .rules import Rule
+from . import placement
 
 
 class Ship(Configurable):
@@ -30,6 +31,12 @@ class Ship(Configurable):
     def xs(self):
         return self.squares[:, 1].copy()
 
+    def set_xs(self, xs):
+        self.squares[:, 1] = xs
+
+    def set_ys(self, ys):
+        self.squares[:, 0] = ys
+
     def take_damage(self, y, x):
         hit, loc = self.hit_by(y, x)
         if hit:
@@ -50,6 +57,11 @@ class Ship(Configurable):
 
     def place_on(self, board, placement_strategy=None):
         success = False
+        if isinstance(placement_strategy, str):
+            placement_strategy = placement.get_strategy(placement_strategy)
+        xs, ys = placement_strategy(board, self)
+        self.set_xs(xs)
+        self.set_ys(ys)
 
         # check coords must be within board boundary
         x_within_bounds = ((0 <= self.xs) & (self.xs < board.size)).all()
@@ -71,8 +83,9 @@ class Ship(Configurable):
             if (board.placement_mask > 1).any():
                 board.placement_mask = undo
                 return success, Rule.NO_OVERLAP
+        success = True
 
-        raise NotImplementedError  # todo
+        return success, dict(name=self.name, xs=self.xs, ys=self.ys)
 
     @property
     def name(self):

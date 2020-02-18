@@ -53,3 +53,35 @@ def get_possible_placements(board, ship):
                 x = np.ones_like(y) * c
                 orientations['vertical'].append((tuple(x), tuple(y)))
     return orientations  # todo: datastructure cleanup
+
+
+def random_placement(board, ship):
+    poss = get_possible_placements(board, ship)
+    v = len(poss['vertical'])
+    h = len(poss['horizontal'])
+    if v and h:
+        d = np.random.choice(['vertical', 'horizontal'])
+        ix = np.random.choice(np.arange(len(poss[d])))
+
+        p = poss[d][ix]
+        print(ship.name, ship.size, p)
+        return p
+    elif v:
+        d = 'vertical'
+        p = np.random.choice(np.arange(len(poss[d])))
+        p = poss[d][p]
+        return p
+    elif h:
+        d = 'horizontal'
+        p = np.random.choice(np.arange(len(poss[d])))
+        p = poss[d][p]
+        return p
+    else:
+        raise Exception("no viable placements for {ship} remaining")
+
+
+def get_strategy(placement_strategy):
+    if placement_strategy.lower() == 'random':
+        return random_placement
+    else:
+        raise NotImplementedError(placement_strategy)
