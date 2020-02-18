@@ -32,52 +32,55 @@ def strides(a, size=2, step=1):
     return np.array(list(_stridegen(a, size, step)))
 
 
-def get_possible_placements(board, ship):
+def get_possible_placements(placement_mask, size, ship):
     orientations = dict(vertical=[], horizontal=[])
 
     # horizontal openings
-    for r in range(board.size):
-        open_spaces = np.argwhere(board.placement_mask[r, :] == 0).flatten()
+    for r in range(size):
+        open_spaces = np.argwhere(placement_mask[r, :] == 0).flatten()
         for segment in adjacent_values(open_spaces):
             if len(segment) >= ship.size:
                 x = strides(segment, size=ship.size, step=1)
                 y = np.ones_like(x) * r
-                orientations['horizontal'].append((tuple(x), tuple(y)))
+                for i in range(x.shape[0]):
+                    orientations['horizontal'].append((list(x[i]), list(y[i])))
 
     # vertical openings
-    for c in range(board.size):
-        open_spaces = np.argwhere(board.placement_mask[:, c] == 0).flatten()
+    for c in range(size):
+        open_spaces = np.argwhere(placement_mask[:, c] == 0).flatten()
         for segment in adjacent_values(open_spaces):
             if len(segment) >= ship.size:
                 y = strides(segment, size=ship.size, step=1)
                 x = np.ones_like(y) * c
-                orientations['vertical'].append((tuple(x), tuple(y)))
-    return orientations  # todo: datastructure cleanup
+                for i in range(x.shape[0]):
+                    orientations['vertical'].append((list(x[i]), list(y[i])))
+
+    for k in orientations:
+        orientations[k] = np.array(orientations[k])
+    return orientations
 
 
-def random_placement(board, ship):
-    poss = get_possible_placements(board, ship)
+def random_placement(placement_mask, size, ship):
+    poss = get_possible_placements(placement_mask, size, ship)
     v = len(poss['vertical'])
     h = len(poss['horizontal'])
     if v and h:
         d = np.random.choice(['vertical', 'horizontal'])
-        ix = np.random.choice(np.arange(len(poss[d])))
-
-        p = poss[d][ix]
-        print(ship.name, ship.size, p)
-        return p
+        p = np.random.choice(np.arange(len(poss[d])))
+        p = poss[d][p]
+        return p.astype(np.uint8)
     elif v:
         d = 'vertical'
         p = np.random.choice(np.arange(len(poss[d])))
         p = poss[d][p]
-        return p
+        return p.astype(np.uint8)
     elif h:
         d = 'horizontal'
         p = np.random.choice(np.arange(len(poss[d])))
         p = poss[d][p]
-        return p
+        return p.astype(np.uint8)
     else:
-        raise Exception("no viable placements for {ship} remaining")
+        raise Exception(f"no viable placements for {ship} remaining")
 
 
 def get_strategy(placement_strategy):

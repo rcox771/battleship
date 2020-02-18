@@ -1,15 +1,15 @@
 import numpy as np
 from enum import Enum
 from .config import Configurable
-from .rules import Rule
-from . import placement
+# from .rules import Rule
+# from . import placement
 
 
 class Ship(Configurable):
     def __init__(self, id=0):
         super().__init__()
         self.id = id
-        self.squares = np.zeros((self.size, 2))
+        self.squares = np.zeros((self.size, 2), dtype=np.uint8)
         self.hp = np.ones(self.size)
 
     def is_sunk(self):
@@ -49,43 +49,22 @@ class Ship(Configurable):
             return ShipEvent.MISS
 
     def bounds(self, boardsize, no_touch=False):
-        ymin = self.ys.min() - 1 if no_touch else 0
-        ymax = self.ys.max() + 1 if no_touch else 0
-        xmin = self.xs.min() - 1 if no_touch else 0
-        xmax = self.xs.max() + 1 if no_touch else 0
-        return np.clip(np.array([ymin, ymax, xmin, xmax], 0, boardsize))
-
-    def place_on(self, board, placement_strategy=None):
-        success = False
-        if isinstance(placement_strategy, str):
-            placement_strategy = placement.get_strategy(placement_strategy)
-        xs, ys = placement_strategy(board, self)
-        self.set_xs(xs)
-        self.set_ys(ys)
-
-        # check coords must be within board boundary
-        x_within_bounds = ((0 <= self.xs) & (self.xs < board.size)).all()
-        y_within_bounds = ((0 <= self.ys) & (self.ys < board.size)).all()
-        if not (x_within_bounds and y_within_bounds):
-            return success, Rule.NO_OOB
-
-        # check touching if necessary
-        if Rule.NO_TOUCH in board.rules:
-            # coords must not touch or overlap another ship's boundaries
-            if not board.placement_mask[self.ys, self.xs].any():
-                return success, Rule.NO_TOUCH
+        ymin = self.ys.min() - 2  # if no_touch else 0
+        ymax = self.ys.max() + 2  # if no_touch else 0
+        xmin = self.xs.min() - 2  # if no_touch else 0
+        xmax = self.xs.max() + 2  # if no_touch else 0
+        return np.clip(np.array([ymin, ymax, xmin, xmax]), 0, boardsize)
 
         # check overlap if necessary
-        undo = board.placement_mask.copy()
-        ymin, ymax, xmin, xmax = self.bounds(board.size)
-        board.placement_mask[ymin:ymax, xmin:xmax] += 1
-        if Rule.NO_OVERLAP in board.rules:
-            if (board.placement_mask > 1).any():
-                board.placement_mask = undo
-                return success, Rule.NO_OVERLAP
-        success = True
+        # undo = board.placement_mask.copy()
 
-        return success, dict(name=self.name, xs=self.xs, ys=self.ys)
+        # # if Rule.NO_OVERLAP in board.rules:
+        # #     if (board.placement_mask > 1).any():
+        # #         board.placement_mask = undo
+        # #         return success, Rule.NO_OVERLAP
+        # success = True
+
+        # return success, board, dict(name=self.name, xs=self.xs, ys=self.ys)
 
     @property
     def name(self):

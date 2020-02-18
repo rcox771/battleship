@@ -36,10 +36,33 @@ class Board:
             to_place = _ships[ship]().count
             for _ in range(to_place):
                 ship = _ships[ship](id=len(self.ships))
-                success, msg = ship.place_on(self, placement_strategy)
-
+                self.place(ship, placement_strategy)
                 assert ship.is_placed()
                 self.ships.append(ship)
+
+    def place(self, ship, placement_strategy=None):
+        if isinstance(placement_strategy, str):
+            placement_strategy = placement.get_strategy(placement_strategy)
+        xs, ys = placement_strategy(self.placement_mask, self.size, ship)
+
+        ship.set_xs(xs)
+        ship.set_ys(ys)
+
+        ymin, ymax, xmin, xmax = ship.bounds(
+            self.size, no_touch=bool(Rule.NO_TOUCH in self.rules))
+        self.placement_mask[ymin:ymax, xmin:xmax] = 1
+
+        # check coords must be within board boundary
+        x_within_bounds = ((0 <= ship.xs) & (ship.xs < self.size)).all()
+        y_within_bounds = ((0 <= ship.ys) & (ship.ys < self.size)).all()
+        assert (x_within_bounds and y_within_bounds)
+        #
+
+        # check touching if necessary
+        # if Rule.NO_TOUCH in board.rules:
+        #     # coords must not touch or overlap another ship's boundaries
+        #     if not board.placement_mask[self.ys, self.xs].any():
+        #         return success, board, Rule.NO_TOUCH
 
     def plot(self, ax=None, figsize=(5, 5)):
         if not ax:
