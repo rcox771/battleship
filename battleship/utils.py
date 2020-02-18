@@ -7,6 +7,6 @@ def get_short_uuid():
 
 
 def get_ax_labels(board_size):
-    cols = ascii_uppercase[::-1][:board_size]
+    cols = ascii_uppercase[:board_size][::-1]
     rows = list(map(str, range(board_size)))
     return rows, cols
