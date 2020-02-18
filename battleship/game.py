@@ -7,12 +7,13 @@ from .utils import get_ax_labels, get_short_uuid
 import inspect
 from . import ships
 from .rules import Rule
+from .config import read_config
+from . import placement
 
 
 def get_ships():
     d = dict(inspect.getmembers(ships))
-    d = {k: d[k] for k in d if 'ships.' in repr(d[k]).lower() and not k.startswith('__') and not '.Ship' in k
-         }
+    d = {k: d[k] for k in d if k in list(read_config()['Ship'])}
     return d
 
 
