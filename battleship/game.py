@@ -43,11 +43,18 @@ class Board:
     def plot(self, ax=None, figsize=(5, 5)):
         if not ax:
             fig, ax = plt.subplots(figsize=figsize)
-        ax.pcolor(self.board,
-                  cmap='gray',
+
+        view = np.zeros_like(self.board)
+
+        for ship in self.ships:
+            view[ship.ys, ship.xs] = ship.id + 1
+
+        ax.pcolor(view,
+                  cmap='viridis',
                   edgecolor='black',
                   linestyle='dashed',
                   lw=1)
+
         for axis, labels in zip([ax.xaxis, ax.yaxis], [self.rows, self.cols]):
             axis.set(ticks=np.arange(0.5, len(labels)), ticklabels=labels)
 
